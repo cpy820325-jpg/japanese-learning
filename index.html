@@ -753,29 +753,29 @@
             card.innerHTML = `
                 <div class="exercise-header">
                     <span class="exercise-number">練習 ${exerciseNum}</span>
-                    <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.topicId}', '${exercise.exerciseId}')">削除</button>
+                    <button class="delete-exercise-btn" data-topic-id="${exercise.topicId}" data-exercise-id="${exercise.exerciseId}">削除</button>
                 </div>
 
                 <div class="exercise-part">
                     <div class="part-title">${isStudent ? '📝 私の日本語' : '📝 学生の日本語'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button" onclick="playAudio('${exercise.studentAudioUrl}', this)">🔊 再生</button>
+                        <button class="audio-button play-btn" data-url="${exercise.studentAudioUrl}">🔊 再生</button>
                         <div class="speed-control">
                             <span style="font-size: 12px; color: #666;">速度:</span>
-                            <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(0.75, this)">0.75x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1, this)">1x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1.25, this)">1.25x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1.5, this)">1.5x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(2, this)">2x</button>
+                            <button class="speed-btn" data-rate="0.5">0.5x</button>
+                            <button class="speed-btn" data-rate="0.75">0.75x</button>
+                            <button class="speed-btn active" data-rate="1">1x</button>
+                            <button class="speed-btn" data-rate="1.25">1.25x</button>
+                            <button class="speed-btn" data-rate="1.5">1.5x</button>
+                            <button class="speed-btn" data-rate="2">2x</button>
                         </div>
                     </div>
-                    <div id="studentText-${exercise.exerciseId}" class="text-display ${!exercise.studentText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'student', '${exercise.studentText || ''}')">
+                    <div class="text-display ${!exercise.studentText ? 'empty' : ''}" data-exercise-id="${exercise.exerciseId}" data-text-type="student">
                         ${exercise.studentText || 'クリックして日本語を入力'}
                     </div>
                     ${isStudent ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student', this)">🎤 再度録音</button>
+                            <button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="student">🎤 再度録音</button>
                         </div>
                     ` : ''}
                 </div>
@@ -783,27 +783,63 @@
                 <div class="exercise-part">
                     <div class="part-title">${isStudent ? '✏️ 先生の修正版' : '✏️ 私の修正版'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button" onclick="playAudio('${exercise.teacherAudioUrl}', this)" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
+                        <button class="audio-button play-btn" data-url="${exercise.teacherAudioUrl}" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
                         <div class="speed-control">
                             <span style="font-size: 12px; color: #666;">速度:</span>
-                            <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(0.75, this)">0.75x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1, this)">1x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1.25, this)">1.25x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(1.5, this)">1.5x</button>
-                            <button class="speed-btn" onclick="setPlaybackRate(2, this)">2x</button>
+                            <button class="speed-btn" data-rate="0.5">0.5x</button>
+                            <button class="speed-btn" data-rate="0.75">0.75x</button>
+                            <button class="speed-btn active" data-rate="1">1x</button>
+                            <button class="speed-btn" data-rate="1.25">1.25x</button>
+                            <button class="speed-btn" data-rate="1.5">1.5x</button>
+                            <button class="speed-btn" data-rate="2">2x</button>
                         </div>
                     </div>
-                    <div id="teacherText-${exercise.exerciseId}" class="text-display ${!exercise.teacherText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'teacher', '${exercise.teacherText || ''}')">
+                    <div class="text-display ${!exercise.teacherText ? 'empty' : ''}" data-exercise-id="${exercise.exerciseId}" data-text-type="teacher">
                         ${exercise.teacherText || (currentUser.role === 'teacher' ? 'クリックして日本語を入力' : '先生はまだ録音していません')}
                     </div>
                     ${currentUser.role === 'teacher' ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher', this)">🎤 録音</button>
+                            <button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="teacher">🎤 録音</button>
                         </div>
                     ` : ''}
                 </div>
             `;
+
+            // イベントリスナーを追加
+            card.querySelector('.delete-exercise-btn').addEventListener('click', function() {
+                if (confirm('この練習を削除してもいいですか？')) {
+                    deleteExercise(this.dataset.topicId, this.dataset.exerciseId);
+                }
+            });
+
+            card.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    playAudio(this.dataset.url);
+                });
+            });
+
+            card.querySelectorAll('.record-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    startRecording(this.dataset.exerciseId, this.dataset.audioType, this);
+                });
+            });
+
+            card.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const buttons = this.parentElement.querySelectorAll('.speed-btn');
+                    buttons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    playbackRate = parseFloat(this.dataset.rate);
+                });
+            });
+
+            card.querySelectorAll('.text-display').forEach(div => {
+                div.addEventListener('click', function() {
+                    const text = this.textContent;
+                    const isEmpty = this.classList.contains('empty');
+                    editText(this.dataset.exerciseId, this.dataset.textType, isEmpty ? '' : text);
+                });
+            });
 
             return card;
         }
@@ -915,7 +951,7 @@
         }
 
         // オーディオを再生
-        function playAudio(url, button) {
+        function playAudio(url) {
             if (!url) {
                 showMessage('再生できるオーディオがありません', 'error', 'messageContainer2');
                 return;
@@ -928,19 +964,10 @@
             });
         }
 
-        // 再生速度を設定
-        function setPlaybackRate(rate, button) {
-            playbackRate = rate;
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            button.classList.add('active');
-        }
-
         // テキストを編集
         function editText(exerciseId, textType, currentText) {
-            const displayId = `${textType}Text-${exerciseId}`;
-            const display = document.getElementById(displayId);
+            const displaySelector = `.text-display[data-exercise-id="${exerciseId}"][data-text-type="${textType}"]`;
+            const display = document.querySelector(displaySelector);
             
             const textarea = document.createElement('textarea');
             textarea.className = 'text-area';
