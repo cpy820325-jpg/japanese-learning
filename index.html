@@ -588,112 +588,80 @@
 
         let currentUser = null;
         let currentTopic = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
         let playbackRate = 1;
+
+        // 録音状態（グローバル管理）
+        const rec = {
+            active: false,
+            recorder: null,
+            chunks: [],
+            btn: null,
+            exerciseId: null,
+            audioType: null
+        };
 
         // ログイン
         function login(role) {
-            currentUser = {
-                role: role,
-                name: role === 'student' ? '学生' : '先生',
-                id: role
-            };
+            currentUser = { role, name: role === 'student' ? '学生' : '先生' };
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainScreen').style.display = 'block';
             document.getElementById('userName').textContent = `身分: ${currentUser.name}`;
             loadTopics();
         }
 
-        // ログアウト
         function logout() {
             currentUser = null;
             document.getElementById('mainScreen').style.display = 'none';
             document.getElementById('exerciseScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('topicInput').value = '';
         }
 
-        // メッセージを表示
         function showMessage(message, type = 'success', containerId = 'messageContainer') {
             const container = document.getElementById(containerId);
+            if (!container) return;
             const div = document.createElement('div');
             div.className = type;
             div.textContent = message;
             container.innerHTML = '';
             container.appendChild(div);
-            setTimeout(() => {
-                div.remove();
-            }, 3000);
+            setTimeout(() => div.remove(), 3000);
         }
 
-        // トピックを読み込む
+        // ---- トピック ----
         async function loadTopics() {
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getTopics' })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    const topicsList = document.getElementById('topicsList');
-                    topicsList.innerHTML = '';
-
-                    if (data.data.length === 0) {
-                        topicsList.innerHTML = '<div class="empty-state"><p>テーマはまだありません。最初のテーマを追加してください</p></div>';
-                        return;
-                    }
-
-                    data.data.forEach(topic => {
-                        const card = document.createElement('div');
-                        card.className = 'topic-card';
-                        card.onclick = () => selectTopic(topic.id, topic.name);
-                        card.innerHTML = `
-                            <div class="topic-name">${topic.name}</div>
-                            <div class="topic-date">${topic.createdDate}</div>
-                        `;
-                        topicsList.appendChild(card);
-                    });
-                } else {
-                    showMessage('テーマの読み込みに失敗しました: ' + data.error, 'error');
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getTopics' }) });
+                const data = await res.json();
+                const list = document.getElementById('topicsList');
+                list.innerHTML = '';
+                if (!data.success) { showMessage('エラー: ' + data.error, 'error'); return; }
+                if (data.data.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><p>テーマはまだありません</p></div>';
+                    return;
                 }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error');
-            }
+                data.data.forEach(topic => {
+                    const card = document.createElement('div');
+                    card.className = 'topic-card';
+                    card.onclick = () => selectTopic(topic.id, topic.name);
+                    // 日付だけ表示（時間なし）
+                    const dateOnly = topic.createdDate ? topic.createdDate.split(' ')[0] : '';
+                    card.innerHTML = `<div class="topic-name">${topic.name}</div><div class="topic-date">${dateOnly}</div>`;
+                    list.appendChild(card);
+                });
+            } catch (e) { showMessage('エラー: ' + e.message, 'error'); }
         }
 
-        // トピックを追加
         async function addTopic() {
-            const topicName = document.getElementById('topicInput').value.trim();
-            if (!topicName) {
-                showMessage('テーマ名を入力してください', 'error');
-                return;
-            }
-
+            const name = document.getElementById('topicInput').value.trim();
+            if (!name) { showMessage('テーマ名を入力してください', 'error'); return; }
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'addTopic',
-                        topicName: topicName
-                    })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    document.getElementById('topicInput').value = '';
-                    showMessage('テーマを追加しました！', 'success');
-                    loadTopics();
-                } else {
-                    showMessage('追加に失敗しました: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error');
-            }
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addTopic', topicName: name }) });
+                const data = await res.json();
+                if (data.success) { document.getElementById('topicInput').value = ''; showMessage('テーマを追加しました！'); loadTopics(); }
+                else showMessage('エラー: ' + data.error, 'error');
+            } catch (e) { showMessage('エラー: ' + e.message, 'error'); }
         }
 
-        // トピックを選択
         function selectTopic(topicId, topicName) {
             currentTopic = { id: topicId, name: topicName };
             document.getElementById('exerciseTopicName').textContent = topicName;
@@ -702,7 +670,6 @@
             loadExercises();
         }
 
-        // トピックリストに戻る
         function backToTopics() {
             currentTopic = null;
             document.getElementById('exerciseScreen').style.display = 'none';
@@ -710,58 +677,52 @@
             loadTopics();
         }
 
-        // 練習を読み込む
+        // ---- 練習 ----
         async function loadExercises() {
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'getExercises',
-                        topicId: currentTopic.id
-                    })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    const exercisesList = document.getElementById('exercisesList');
-                    exercisesList.innerHTML = '';
-
-                    if (data.data.length === 0) {
-                        exercisesList.innerHTML = '<div class="empty-state"><p>練習がまだありません。「練習を追加」をクリックしてください</p></div>';
-                        return;
-                    }
-
-                    data.data.forEach((exercise, index) => {
-                        const card = createExerciseCard(exercise, index + 1);
-                        exercisesList.appendChild(card);
-                    });
-                } else {
-                    showMessage('練習の読み込みに失敗しました: ' + data.error, 'error', 'messageContainer2');
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getExercises', topicId: currentTopic.id }) });
+                const data = await res.json();
+                const list = document.getElementById('exercisesList');
+                list.innerHTML = '';
+                if (!data.success) { showMessage('エラー: ' + data.error, 'error', 'messageContainer2'); return; }
+                if (data.data.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><p>練習がまだありません。「練習を追加」をクリックしてください</p></div>';
+                    return;
                 }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
-            }
+                data.data.forEach((exercise, index) => list.appendChild(createExerciseCard(exercise, index + 1)));
+            } catch (e) { showMessage('エラー: ' + e.message, 'error', 'messageContainer2'); }
         }
 
-        // 練習カードを作成
+        async function startAddExercise() {
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addExercise', topicId: currentTopic.id, studentAudioUrl: '', studentText: '' }) });
+                const data = await res.json();
+                if (data.success) { showMessage('練習を作成しました', 'success', 'messageContainer2'); loadExercises(); }
+                else showMessage('エラー: ' + data.error, 'error', 'messageContainer2');
+            } catch (e) { showMessage('エラー: ' + e.message, 'error', 'messageContainer2'); }
+        }
+
         function createExerciseCard(exercise, exerciseNum) {
             const card = document.createElement('div');
             card.className = 'exercise-card';
-
             const isStudent = currentUser.role === 'student';
+            const exName = exercise.exerciseName || `練習 ${exerciseNum}`;
 
             card.innerHTML = `
                 <div class="exercise-header">
-                    <span class="exercise-number">練習 ${exerciseNum}</span>
-                    <button class="delete-exercise-btn" data-topic-id="${exercise.topicId}" data-exercise-id="${exercise.exerciseId}">削除</button>
+                    <span class="exercise-number" id="exname-${exercise.exerciseId}">${exName}</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="audio-button rename-btn" style="background:#f39c12;padding:5px 12px;font-size:12px;" data-exercise-id="${exercise.exerciseId}" data-current-name="${exName}">✏️ 名前変更</button>
+                        <button class="delete-exercise-btn" data-topic-id="${exercise.topicId}" data-exercise-id="${exercise.exerciseId}">削除</button>
+                    </div>
                 </div>
 
                 <div class="exercise-part">
                     <div class="part-title">${isStudent ? '📝 私の日本語' : '📝 学生の日本語'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button play-btn" data-url="${exercise.studentAudioUrl}">🔊 再生</button>
+                        <button class="audio-button play-btn" data-url="${exercise.studentAudioUrl || ''}">🔊 再生</button>
                         <div class="speed-control">
-                            <span style="font-size: 12px; color: #666;">速度:</span>
+                            <span style="font-size:12px;color:#666;">速度:</span>
                             <button class="speed-btn" data-rate="0.5">0.5x</button>
                             <button class="speed-btn" data-rate="0.75">0.75x</button>
                             <button class="speed-btn active" data-rate="1">1x</button>
@@ -773,19 +734,15 @@
                     <div class="text-display ${!exercise.studentText ? 'empty' : ''}" data-exercise-id="${exercise.exerciseId}" data-text-type="student">
                         ${exercise.studentText || 'クリックして日本語を入力'}
                     </div>
-                    ${isStudent ? `
-                        <div style="margin-top: 10px;">
-                            <button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="student">🎤 再度録音</button>
-                        </div>
-                    ` : ''}
+                    ${isStudent ? `<div style="margin-top:10px;"><button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="student">🎤 録音</button></div>` : ''}
                 </div>
 
                 <div class="exercise-part">
                     <div class="part-title">${isStudent ? '✏️ 先生の修正版' : '✏️ 私の修正版'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button play-btn" data-url="${exercise.teacherAudioUrl}" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
+                        <button class="audio-button play-btn" data-url="${exercise.teacherAudioUrl || ''}" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
                         <div class="speed-control">
-                            <span style="font-size: 12px; color: #666;">速度:</span>
+                            <span style="font-size:12px;color:#666;">速度:</span>
                             <button class="speed-btn" data-rate="0.5">0.5x</button>
                             <button class="speed-btn" data-rate="0.75">0.75x</button>
                             <button class="speed-btn active" data-rate="1">1x</button>
@@ -795,274 +752,182 @@
                         </div>
                     </div>
                     <div class="text-display ${!exercise.teacherText ? 'empty' : ''}" data-exercise-id="${exercise.exerciseId}" data-text-type="teacher">
-                        ${exercise.teacherText || (currentUser.role === 'teacher' ? 'クリックして日本語を入力' : '先生はまだ録音していません')}
+                        ${exercise.teacherText || (isStudent ? '先生はまだ録音していません' : 'クリックして日本語を入力')}
                     </div>
-                    ${currentUser.role === 'teacher' ? `
-                        <div style="margin-top: 10px;">
-                            <button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="teacher">🎤 録音</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
+                    ${!isStudent ? `<div style="margin-top:10px;"><button class="audio-button record-btn" data-exercise-id="${exercise.exerciseId}" data-audio-type="teacher">🎤 録音</button></div>` : ''}
+                </div>`;
 
-            // イベントリスナーを追加
-            card.querySelector('.delete-exercise-btn').addEventListener('click', function() {
-                if (confirm('この練習を削除してもいいですか？')) {
-                    deleteExercise(this.dataset.topicId, this.dataset.exerciseId);
-                }
+            // 削除
+            card.querySelector('.delete-exercise-btn').addEventListener('click', function () {
+                if (confirm('この練習を削除してもいいですか？')) deleteExercise(this.dataset.topicId, this.dataset.exerciseId);
             });
 
+            // 名前変更
+            card.querySelector('.rename-btn').addEventListener('click', function () {
+                const newName = prompt('新しい練習名を入力してください', this.dataset.currentName);
+                if (newName && newName.trim()) renameExercise(this.dataset.exerciseId, newName.trim());
+            });
+
+            // 再生
             card.querySelectorAll('.play-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    playAudio(this.dataset.url);
-                });
+                btn.addEventListener('click', function () { playAudio(this.dataset.url); });
             });
 
-            card.querySelectorAll('.record-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const isRecording = this.classList.contains('recording');
-                    if (isRecording) {
-                        stopRecording(this.dataset.exerciseId, this.dataset.audioType, this);
-                    } else {
-                        startRecording(this.dataset.exerciseId, this.dataset.audioType, this);
-                    }
-                });
-            });
-
+            // 速度
             card.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    const buttons = this.parentElement.querySelectorAll('.speed-btn');
-                    buttons.forEach(b => b.classList.remove('active'));
+                btn.addEventListener('click', function () {
+                    this.closest('.speed-control').querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     playbackRate = parseFloat(this.dataset.rate);
                 });
             });
 
+            // テキスト編集
             card.querySelectorAll('.text-display').forEach(div => {
-                div.addEventListener('click', function() {
-                    const text = this.textContent;
-                    const isEmpty = this.classList.contains('empty');
-                    editText(this.dataset.exerciseId, this.dataset.textType, isEmpty ? '' : text);
+                div.addEventListener('click', function () {
+                    editText(this.dataset.exerciseId, this.dataset.textType, this.classList.contains('empty') ? '' : this.textContent.trim());
+                });
+            });
+
+            // 録音ボタン（クリックのたびに状態チェック）
+            card.querySelectorAll('.record-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    if (rec.active) {
+                        // 録音中 → 停止
+                        doStopRecording();
+                    } else {
+                        // 停止中 → 開始
+                        doStartRecording(this.dataset.exerciseId, this.dataset.audioType, this);
+                    }
                 });
             });
 
             return card;
         }
 
-        // 練習を追加開始
-        async function startAddExercise() {
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'addExercise',
-                        topicId: currentTopic.id,
-                        studentAudioUrl: '',
-                        studentText: ''
-                    })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('練習を作成しました。録音してください', 'success', 'messageContainer2');
-                    loadExercises();
-                } else {
-                    showMessage('作成に失敗しました: ' + data.error, 'error', 'messageContainer2');
-                }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
-            }
-        }
-
-        // 録音開始
-        async function startRecording(exerciseId, audioType, button) {
+        // ---- 録音（状態機） ----
+        async function doStartRecording(exerciseId, audioType, btn) {
+            if (rec.active) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
+                rec.recorder = new MediaRecorder(stream);
+                rec.chunks = [];
+                rec.active = true;
+                rec.btn = btn;
+                rec.exerciseId = exerciseId;
+                rec.audioType = audioType;
 
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) audioChunks.push(e.data);
-                };
+                rec.recorder.ondataavailable = e => { if (e.data.size > 0) rec.chunks.push(e.data); };
+                rec.recorder.start(100);
 
-                mediaRecorder.start(100); // 100ms ごとにデータを収集
-
-                button.textContent = '⏹️ 停止';
-                button.classList.add('recording');
-                // dataset に保存（イベントリスナーで使用）
-                button.dataset.exerciseId = exerciseId;
-                button.dataset.audioType = audioType;
-
-            } catch (error) {
-                showMessage('マイクにアクセスできません: ' + error.message, 'error', 'messageContainer2');
+                btn.textContent = '⏹️ 停止';
+                btn.classList.add('recording');
+            } catch (e) {
+                showMessage('マイクエラー: ' + e.message, 'error', 'messageContainer2');
             }
         }
 
-        // 録音停止
-        function stopRecording(exerciseId, audioType, button) {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        function doStopRecording() {
+            if (!rec.active || !rec.recorder) return;
 
-            button.textContent = '⏫ アップロード中...';
-            button.disabled = true;
+            const btn = rec.btn;
+            const exerciseId = rec.exerciseId;
+            const audioType = rec.audioType;
 
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            rec.active = false;
+            btn.textContent = '⏫ アップロード中...';
+            btn.classList.remove('recording');
+            btn.disabled = true;
+
+            rec.recorder.onstop = async () => {
+                const blob = new Blob(rec.chunks, { type: 'audio/webm' });
+                rec.recorder.stream.getTracks().forEach(t => t.stop());
+                rec.recorder = null;
+
                 const reader = new FileReader();
-
-                reader.onload = async (e) => {
-                    const base64Audio = e.target.result.split(',')[1];
+                reader.onload = async e => {
+                    const base64 = e.target.result.split(',')[1];
                     const fileName = `${currentTopic.id}-${exerciseId}-${audioType}-${Date.now()}.webm`;
-
                     try {
-                        const uploadResponse = await fetch(GAS_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'uploadAudio',
-                                base64Data: base64Audio,
-                                fileName: fileName
-                            })
-                        });
-                        const uploadData = await uploadResponse.json();
+                        const upRes = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'uploadAudio', base64Data: base64, fileName }) });
+                        const upData = await upRes.json();
+                        if (!upData.success) throw new Error(upData.error);
 
-                        if (uploadData.success) {
-                            const field = audioType === 'student' ? 'studentAudioUrl' : 'teacherAudioUrl';
-                            const updateResponse = await fetch(GAS_URL, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    action: 'updateExercise',
-                                    topicId: currentTopic.id,
-                                    exerciseId: exerciseId,
-                                    field: field,
-                                    value: uploadData.url
-                                })
-                            });
-                            const updateData = await updateResponse.json();
+                        const field = audioType === 'student' ? 'studentAudioUrl' : 'teacherAudioUrl';
+                        const saveRes = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateExercise', topicId: currentTopic.id, exerciseId, field, value: upData.url }) });
+                        const saveData = await saveRes.json();
+                        if (!saveData.success) throw new Error(saveData.error);
 
-                            if (updateData.success) {
-                                showMessage('録音を保存しました！', 'success', 'messageContainer2');
-                                loadExercises();
-                            } else {
-                                showMessage('保存に失敗しました: ' + updateData.error, 'error', 'messageContainer2');
-                            }
-                        } else {
-                            showMessage('アップロードに失敗しました: ' + uploadData.error, 'error', 'messageContainer2');
-                        }
-                    } catch (error) {
-                        showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
-                    } finally {
-                        button.textContent = '🎤 再度録音';
-                        button.classList.remove('recording');
-                        button.disabled = false;
+                        showMessage('録音を保存しました！', 'success', 'messageContainer2');
+                        loadExercises();
+                    } catch (err) {
+                        showMessage('エラー: ' + err.message, 'error', 'messageContainer2');
+                        btn.textContent = '🎤 録音';
+                        btn.disabled = false;
                     }
                 };
-
-                reader.readAsDataURL(audioBlob);
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                reader.readAsDataURL(blob);
             };
 
-            mediaRecorder.stop();
+            rec.recorder.stop();
         }
 
-        // オーディオを再生
+        // ---- 再生 ----
         function playAudio(url) {
-            if (!url) {
-                showMessage('再生できるオーディオがありません', 'error', 'messageContainer2');
-                return;
-            }
-
+            if (!url) { showMessage('音声ファイルがありません', 'error', 'messageContainer2'); return; }
             const audio = new Audio(url);
             audio.playbackRate = playbackRate;
-            audio.play().catch(error => {
-                showMessage('再生に失敗しました: ' + error.message, 'error', 'messageContainer2');
-            });
+            audio.play().catch(e => showMessage('再生エラー: ' + e.message, 'error', 'messageContainer2'));
         }
 
-        // テキストを編集
+        // ---- テキスト編集 ----
         function editText(exerciseId, textType, currentText) {
-            const displaySelector = `.text-display[data-exercise-id="${exerciseId}"][data-text-type="${textType}"]`;
-            const display = document.querySelector(displaySelector);
-            
+            const display = document.querySelector(`.text-display[data-exercise-id="${exerciseId}"][data-text-type="${textType}"]`);
+            if (!display) return;
             const textarea = document.createElement('textarea');
             textarea.className = 'text-area';
             textarea.value = currentText;
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'text-edit';
-
-            const confirmBtn = document.createElement('button');
-            confirmBtn.className = 'text-confirm-btn';
-            confirmBtn.textContent = '✓ 確認';
-            confirmBtn.onclick = () => saveText(exerciseId, textType, textarea.value);
-
-            const cancelBtn = document.createElement('button');
-            cancelBtn.className = 'text-cancel-btn';
-            cancelBtn.textContent = '✕ キャンセル';
-            cancelBtn.onclick = () => {
-                display.innerHTML = currentText || (textType === 'student' ? 'クリックして日本語を入力' : 'クリックして日本語を入力');
-                display.classList.toggle('empty', !currentText);
-            };
-
-            buttonContainer.appendChild(confirmBtn);
-            buttonContainer.appendChild(cancelBtn);
-
-            display.innerHTML = '';
-            display.appendChild(textarea);
-            display.appendChild(buttonContainer);
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'text-edit';
+            const ok = document.createElement('button');
+            ok.className = 'text-confirm-btn'; ok.textContent = '✓ 確認';
+            ok.onclick = () => saveText(exerciseId, textType, textarea.value);
+            const cancel = document.createElement('button');
+            cancel.className = 'text-cancel-btn'; cancel.textContent = '✕ キャンセル';
+            cancel.onclick = () => loadExercises();
+            btnDiv.appendChild(ok); btnDiv.appendChild(cancel);
+            display.innerHTML = ''; display.appendChild(textarea); display.appendChild(btnDiv);
             textarea.focus();
         }
 
-        // テキストを保存
         async function saveText(exerciseId, textType, text) {
             const field = textType === 'student' ? 'studentText' : 'teacherText';
-
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'updateExercise',
-                        topicId: currentTopic.id,
-                        exerciseId: exerciseId,
-                        field: field,
-                        value: text
-                    })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('テキストを保存しました！', 'success', 'messageContainer2');
-                    loadExercises();
-                } else {
-                    showMessage('保存に失敗しました: ' + data.error, 'error', 'messageContainer2');
-                }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
-            }
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateExercise', topicId: currentTopic.id, exerciseId, field, value: text }) });
+                const data = await res.json();
+                if (data.success) { showMessage('保存しました！', 'success', 'messageContainer2'); loadExercises(); }
+                else showMessage('エラー: ' + data.error, 'error', 'messageContainer2');
+            } catch (e) { showMessage('エラー: ' + e.message, 'error', 'messageContainer2'); }
         }
 
-        // 練習を削除
-        async function deleteExercise(topicId, exerciseId) {
-            if (!confirm('この練習を削除してもいいですか？')) return;
-
+        // ---- 練習名変更 ----
+        async function renameExercise(exerciseId, newName) {
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'deleteExercise',
-                        topicId: topicId,
-                        exerciseId: exerciseId
-                    })
-                });
-                const data = await response.json();
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateExercise', topicId: currentTopic.id, exerciseId, field: 'exerciseName', value: newName }) });
+                const data = await res.json();
+                if (data.success) { showMessage('名前を変更しました', 'success', 'messageContainer2'); loadExercises(); }
+                else showMessage('エラー: ' + data.error, 'error', 'messageContainer2');
+            } catch (e) { showMessage('エラー: ' + e.message, 'error', 'messageContainer2'); }
+        }
 
-                if (data.success) {
-                    showMessage('練習を削除しました', 'success', 'messageContainer2');
-                    loadExercises();
-                } else {
-                    showMessage('削除に失敗しました: ' + data.error, 'error', 'messageContainer2');
-                }
-            } catch (error) {
-                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
-            }
+        // ---- 削除 ----
+        async function deleteExercise(topicId, exerciseId) {
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteExercise', topicId, exerciseId }) });
+                const data = await res.json();
+                if (data.success) { showMessage('削除しました', 'success', 'messageContainer2'); loadExercises(); }
+                else showMessage('エラー: ' + data.error, 'error', 'messageContainer2');
+            } catch (e) { showMessage('エラー: ' + e.message, 'error', 'messageContainer2'); }
         }
     </script>
 </body>
