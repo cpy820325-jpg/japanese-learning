@@ -881,13 +881,18 @@
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+
+                mediaRecorder.start(100); // 100ms ごとにデータを収集
+
                 button.textContent = '⏹️ 停止';
                 button.classList.add('recording');
-                button.onclick = () => stopRecording(exerciseId, audioType, button);
+                // dataset に保存（イベントリスナーで使用）
+                button.dataset.exerciseId = exerciseId;
+                button.dataset.audioType = audioType;
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
             } catch (error) {
                 showMessage('マイクにアクセスできません: ' + error.message, 'error', 'messageContainer2');
             }
@@ -895,7 +900,10 @@
 
         // 録音停止
         function stopRecording(exerciseId, audioType, button) {
-            if (!mediaRecorder) return;
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+
+            button.textContent = '⏫ アップロード中...';
+            button.disabled = true;
 
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -941,16 +949,15 @@
                         }
                     } catch (error) {
                         showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+                    } finally {
+                        button.textContent = '🎤 再度録音';
+                        button.classList.remove('recording');
+                        button.disabled = false;
                     }
                 };
 
                 reader.readAsDataURL(audioBlob);
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
-
-                // ボタンを元の状態に戻す
-                button.textContent = '🎤 再度録音';
-                button.classList.remove('recording');
-                // イベント委托は自動的に処理するため、onclickを設定しない
             };
 
             mediaRecorder.stop();
