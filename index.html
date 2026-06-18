@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語学習システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'YuGothic', 'Hiragino Sans', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* ログイン画面 */
+        .login-screen {
+            text-align: center;
+        }
+
+        .login-screen h2 {
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .login-btn {
+            padding: 20px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        .student-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .student-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .teacher-btn {
+            background: #f093fb;
+            color: white;
+        }
+
+        .teacher-btn:hover {
+            background: #da82e8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        /* メイン画面 */
+        .main-screen {
+            display: none;
+        }
+
+        .user-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        /* トピック管理 */
+        .topics-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .add-topic-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-topic-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .add-topic-form button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .add-topic-form button:hover {
+            background: #5568d3;
+        }
+
+        .topics-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .topic-card {
+            background: #f9f9f9;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .topic-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .topic-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .topic-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 練習画面 */
+        .exercise-screen {
+            display: none;
+        }
+
+        .back-button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: #7f8c8d;
+        }
+
+        .topic-header {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .topic-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .add-exercise-btn {
+            padding: 12px 25px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .add-exercise-btn:hover {
+            background: #229954;
+        }
+
+        .exercises-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .exercise-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .exercise-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .delete-exercise-btn {
+            padding: 5px 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-exercise-btn:hover {
+            background: #c0392b;
+        }
+
+        .exercise-part {
+            margin-bottom: 25px;
+        }
+
+        .part-title {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .audio-button {
+            padding: 10px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .audio-button:hover {
+            background: #5568d3;
+        }
+
+        .audio-button.recording {
+            background: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .speed-control {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .speed-btn {
+            padding: 6px 12px;
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .speed-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .speed-btn:hover {
+            border-color: #667eea;
+        }
+
+        .text-area {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Segoe UI', 'YuGothic', Arial, sans-serif;
+            resize: vertical;
+            min-height: 40px;
+        }
+
+        .text-edit {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .text-confirm-btn {
+            padding: 8px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .text-confirm-btn:hover {
+            background: #229954;
+        }
+
+        .text-cancel-btn {
+            padding: 8px 20px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .text-cancel-btn:hover {
+            background: #7f8c8d;
+        }
+
+        .text-display {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            color: #333;
+            line-height: 1.6;
+            word-break: break-word;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .text-display:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .text-display.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .error {
+            background: #ffe5e5;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c0392b;
+        }
+
+        .success {
+            background: #e5ffe5;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .topics-list {
+                grid-template-columns: 1fr;
+            }
+
+            .login-buttons {
+                flex-direction: column;
+            }
+
+            .login-btn {
+                width: 100%;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .audio-controls {
+                flex-direction: column;
+            }
+
+            .audio-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .speed-control {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎌 日本語学習システム</h1>
+            <p>先生と一緒に日本語を学びます</p>
+        </div>
+
+        <div class="content">
+            <!-- ログイン画面 -->
+            <div id="loginScreen" class="login-screen">
+                <h2>あなたの身分を選んでください</h2>
+                <div class="login-buttons">
+                    <button class="login-btn student-btn" onclick="login('student')">
+                        📚 学生
+                    </button>
+                    <button class="login-btn teacher-btn" onclick="login('teacher')">
+                        👨‍🏫 先生
+                    </button>
+                </div>
+            </div>
+
+            <!-- メイン画面 -->
+            <div id="mainScreen" class="main-screen">
+                <div class="user-info">
+                    <span class="user-name" id="userName"></span>
+                    <button class="logout-btn" onclick="logout()">ログアウト</button>
+                </div>
+
+                <div class="topics-section">
+                    <h2 class="section-title">📖 学習テーマ</h2>
+                    
+                    <div class="add-topic-form">
+                        <input type="text" id="topicInput" placeholder="新しいテーマ名を入力してください..." />
+                        <button onclick="addTopic()">テーマを追加</button>
+                    </div>
+
+                    <div id="topicsList" class="topics-list">
+                        <div class="loading">テーマを読み込み中...</div>
+                    </div>
+                </div>
+
+                <div id="messageContainer"></div>
+            </div>
+
+            <!-- 練習画面 -->
+            <div id="exerciseScreen" class="exercise-screen">
+                <button class="back-button" onclick="backToTopics()">← テーマリストに戻る</button>
+
+                <div class="topic-header">
+                    <h2 id="exerciseTopicName"></h2>
+                    <button class="add-exercise-btn" onclick="startAddExercise()">+ 練習を追加</button>
+                </div>
+
+                <div id="messageContainer2"></div>
+
+                <div id="exercisesList" class="exercises-list">
+                    <div class="loading">練習を読み込み中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw5k_MEfd6WQfazoX-dyxKsgndl4a2Ws9osFPLsx5Bj_kBrd4Vkzjw_jPC4b-Y_g3dz/exec';
+
+        let currentUser = null;
+        let currentTopic = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let playbackRate = 1;
+
+        // ログイン
+        function login(role) {
+            currentUser = {
+                role: role,
+                name: role === 'student' ? '学生' : '先生',
+                id: role
+            };
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainScreen').style.display = 'block';
+            document.getElementById('userName').textContent = `身分: ${currentUser.name}`;
+            loadTopics();
+        }
+
+        // ログアウト
+        function logout() {
+            currentUser = null;
+            document.getElementById('mainScreen').style.display = 'none';
+            document.getElementById('exerciseScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('topicInput').value = '';
+        }
+
+        // メッセージを表示
+        function showMessage(message, type = 'success', containerId = 'messageContainer') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(div);
+            setTimeout(() => {
+                div.remove();
+            }, 3000);
+        }
+
+        // トピックを読み込む
+        async function loadTopics() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getTopics' })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const topicsList = document.getElementById('topicsList');
+                    topicsList.innerHTML = '';
+
+                    if (data.data.length === 0) {
+                        topicsList.innerHTML = '<div class="empty-state"><p>テーマはまだありません。最初のテーマを追加してください</p></div>';
+                        return;
+                    }
+
+                    data.data.forEach(topic => {
+                        const card = document.createElement('div');
+                        card.className = 'topic-card';
+                        card.onclick = () => selectTopic(topic.id, topic.name);
+                        card.innerHTML = `
+                            <div class="topic-name">${topic.name}</div>
+                            <div class="topic-date">${topic.createdDate}</div>
+                        `;
+                        topicsList.appendChild(card);
+                    });
+                } else {
+                    showMessage('テーマの読み込みに失敗しました: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error');
+            }
+        }
+
+        // トピックを追加
+        async function addTopic() {
+            const topicName = document.getElementById('topicInput').value.trim();
+            if (!topicName) {
+                showMessage('テーマ名を入力してください', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addTopic',
+                        topicName: topicName
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('topicInput').value = '';
+                    showMessage('テーマを追加しました！', 'success');
+                    loadTopics();
+                } else {
+                    showMessage('追加に失敗しました: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error');
+            }
+        }
+
+        // トピックを選択
+        function selectTopic(topicId, topicName) {
+            currentTopic = { id: topicId, name: topicName };
+            document.getElementById('exerciseTopicName').textContent = topicName;
+            document.getElementById('mainScreen').style.display = 'none';
+            document.getElementById('exerciseScreen').style.display = 'block';
+            loadExercises();
+        }
+
+        // トピックリストに戻る
+        function backToTopics() {
+            currentTopic = null;
+            document.getElementById('exerciseScreen').style.display = 'none';
+            document.getElementById('mainScreen').style.display = 'block';
+            loadTopics();
+        }
+
+        // 練習を読み込む
+        async function loadExercises() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'getExercises',
+                        topicId: currentTopic.id
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const exercisesList = document.getElementById('exercisesList');
+                    exercisesList.innerHTML = '';
+
+                    if (data.data.length === 0) {
+                        exercisesList.innerHTML = '<div class="empty-state"><p>練習がまだありません。「練習を追加」をクリックしてください</p></div>';
+                        return;
+                    }
+
+                    data.data.forEach((exercise, index) => {
+                        const card = createExerciseCard(exercise, index + 1);
+                        exercisesList.appendChild(card);
+                    });
+                } else {
+                    showMessage('練習の読み込みに失敗しました: ' + data.error, 'error', 'messageContainer2');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+            }
+        }
+
+        // 練習カードを作成
+        function createExerciseCard(exercise, exerciseNum) {
+            const card = document.createElement('div');
+            card.className = 'exercise-card';
+
+            const isStudent = currentUser.role === 'student';
+
+            card.innerHTML = `
+                <div class="exercise-header">
+                    <span class="exercise-number">練習 ${exerciseNum}</span>
+                    <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.topicId}', '${exercise.exerciseId}')">削除</button>
+                </div>
+
+                <div class="exercise-part">
+                    <div class="part-title">${isStudent ? '📝 私の日本語' : '📝 学生の日本語'}</div>
+                    <div class="audio-controls">
+                        <button class="audio-button" onclick="playAudio('${exercise.studentAudioUrl}', this)">🔊 再生</button>
+                        <div class="speed-control">
+                            <span style="font-size: 12px; color: #666;">速度:</span>
+                            <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(0.75, this)">0.75x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1, this)">1x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1.25, this)">1.25x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1.5, this)">1.5x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(2, this)">2x</button>
+                        </div>
+                    </div>
+                    <div id="studentText-${exercise.exerciseId}" class="text-display ${!exercise.studentText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'student', '${exercise.studentText || ''}')">
+                        ${exercise.studentText || 'クリックして日本語を入力'}
+                    </div>
+                    ${isStudent ? `
+                        <div style="margin-top: 10px;">
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student')">🎤 再度録音</button>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="exercise-part">
+                    <div class="part-title">${isStudent ? '✏️ 先生の修正版' : '✏️ 私の修正版'}</div>
+                    <div class="audio-controls">
+                        <button class="audio-button" onclick="playAudio('${exercise.teacherAudioUrl}', this)" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
+                        <div class="speed-control">
+                            <span style="font-size: 12px; color: #666;">速度:</span>
+                            <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(0.75, this)">0.75x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1, this)">1x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1.25, this)">1.25x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(1.5, this)">1.5x</button>
+                            <button class="speed-btn" onclick="setPlaybackRate(2, this)">2x</button>
+                        </div>
+                    </div>
+                    <div id="teacherText-${exercise.exerciseId}" class="text-display ${!exercise.teacherText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'teacher', '${exercise.teacherText || ''}')">
+                        ${exercise.teacherText || (currentUser.role === 'teacher' ? 'クリックして日本語を入力' : '先生はまだ録音していません')}
+                    </div>
+                    ${currentUser.role === 'teacher' ? `
+                        <div style="margin-top: 10px;">
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher')">🎤 録音</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 練習を追加開始
+        async function startAddExercise() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'addExercise',
+                        topicId: currentTopic.id,
+                        studentAudioUrl: '',
+                        studentText: ''
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('練習を作成しました。録音してください', 'success', 'messageContainer2');
+                    loadExercises();
+                } else {
+                    showMessage('作成に失敗しました: ' + data.error, 'error', 'messageContainer2');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+            }
+        }
+
+        // 録音開始
+        async function startRecording(exerciseId, audioType) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                const button = event.target;
+                button.textContent = '⏹️ 停止';
+                button.classList.add('recording');
+                button.onclick = () => stopRecording(exerciseId, audioType, button);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+            } catch (error) {
+                showMessage('マイクにアクセスできません: ' + error.message, 'error', 'messageContainer2');
+            }
+        }
+
+        // 録音停止
+        function stopRecording(exerciseId, audioType, button) {
+            if (!mediaRecorder) return;
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+
+                reader.onload = async (e) => {
+                    const base64Audio = e.target.result.split(',')[1];
+                    const fileName = `${currentTopic.id}-${exerciseId}-${audioType}-${Date.now()}.webm`;
+
+                    try {
+                        const uploadResponse = await fetch(GAS_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'uploadAudio',
+                                base64Data: base64Audio,
+                                fileName: fileName
+                            })
+                        });
+                        const uploadData = await uploadResponse.json();
+
+                        if (uploadData.success) {
+                            const field = audioType === 'student' ? 'studentAudioUrl' : 'teacherAudioUrl';
+                            const updateResponse = await fetch(GAS_URL, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    action: 'updateExercise',
+                                    topicId: currentTopic.id,
+                                    exerciseId: exerciseId,
+                                    field: field,
+                                    value: uploadData.url
+                                })
+                            });
+                            const updateData = await updateResponse.json();
+
+                            if (updateData.success) {
+                                showMessage('録音を保存しました！', 'success', 'messageContainer2');
+                                loadExercises();
+                            } else {
+                                showMessage('保存に失敗しました: ' + updateData.error, 'error', 'messageContainer2');
+                            }
+                        } else {
+                            showMessage('アップロードに失敗しました: ' + uploadData.error, 'error', 'messageContainer2');
+                        }
+                    } catch (error) {
+                        showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+                    }
+                };
+
+                reader.readAsDataURL(audioBlob);
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+                button.textContent = '🎤 再度録音';
+                button.classList.remove('recording');
+                button.onclick = () => startRecording(exerciseId, audioType);
+            };
+
+            mediaRecorder.stop();
+        }
+
+        // オーディオを再生
+        function playAudio(url, button) {
+            if (!url) {
+                showMessage('再生できるオーディオがありません', 'error', 'messageContainer2');
+                return;
+            }
+
+            const audio = new Audio(url);
+            audio.playbackRate = playbackRate;
+            audio.play().catch(error => {
+                showMessage('再生に失敗しました: ' + error.message, 'error', 'messageContainer2');
+            });
+        }
+
+        // 再生速度を設定
+        function setPlaybackRate(rate, button) {
+            playbackRate = rate;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+        }
+
+        // テキストを編集
+        function editText(exerciseId, textType, currentText) {
+            const displayId = `${textType}Text-${exerciseId}`;
+            const display = document.getElementById(displayId);
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'text-area';
+            textarea.value = currentText;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'text-edit';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'text-confirm-btn';
+            confirmBtn.textContent = '✓ 確認';
+            confirmBtn.onclick = () => saveText(exerciseId, textType, textarea.value);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'text-cancel-btn';
+            cancelBtn.textContent = '✕ キャンセル';
+            cancelBtn.onclick = () => {
+                display.innerHTML = currentText || (textType === 'student' ? 'クリックして日本語を入力' : 'クリックして日本語を入力');
+                display.classList.toggle('empty', !currentText);
+            };
+
+            buttonContainer.appendChild(confirmBtn);
+            buttonContainer.appendChild(cancelBtn);
+
+            display.innerHTML = '';
+            display.appendChild(textarea);
+            display.appendChild(buttonContainer);
+            textarea.focus();
+        }
+
+        // テキストを保存
+        async function saveText(exerciseId, textType, text) {
+            const field = textType === 'student' ? 'studentText' : 'teacherText';
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'updateExercise',
+                        topicId: currentTopic.id,
+                        exerciseId: exerciseId,
+                        field: field,
+                        value: text
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('テキストを保存しました！', 'success', 'messageContainer2');
+                    loadExercises();
+                } else {
+                    showMessage('保存に失敗しました: ' + data.error, 'error', 'messageContainer2');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+            }
+        }
+
+        // 練習を削除
+        async function deleteExercise(topicId, exerciseId) {
+            if (!confirm('この練習を削除してもいいですか？')) return;
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'deleteExercise',
+                        topicId: topicId,
+                        exerciseId: exerciseId
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('練習を削除しました', 'success', 'messageContainer2');
+                    loadExercises();
+                } else {
+                    showMessage('削除に失敗しました: ' + data.error, 'error', 'messageContainer2');
+                }
+            } catch (error) {
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
+            }
+        }
+    </script>
+</body>
+</html>
