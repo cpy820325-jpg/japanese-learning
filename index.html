@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日文練習系統</title>
+    <title>日本語学習システム</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+            font-family: 'Segoe UI', 'YuGothic', 'Hiragino Sans', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -48,7 +48,7 @@
             padding: 30px;
         }
 
-        /* 登錄界面 */
+        /* ログイン画面 */
         .login-screen {
             text-align: center;
         }
@@ -99,7 +99,7 @@
             box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
         }
 
-        /* 主要頁面 */
+        /* メイン画面 */
         .main-screen {
             display: none;
         }
@@ -134,7 +134,7 @@
             background: #c0392b;
         }
 
-        /* 主題管理 */
+        /* トピック管理 */
         .topics-section {
             margin-bottom: 40px;
         }
@@ -210,7 +210,7 @@
             color: #999;
         }
 
-        /* 練習頁面 */
+        /* 練習画面 */
         .exercise-screen {
             display: none;
         }
@@ -375,7 +375,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-family: 'Segoe UI', 'YuGothic', Arial, sans-serif;
             resize: vertical;
             min-height: 40px;
         }
@@ -524,60 +524,60 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎌 日文練習系統</h1>
-            <p>與老師互動學習日文</p>
+            <h1>🎌 日本語学習システム</h1>
+            <p>先生と一緒に日本語を学びます</p>
         </div>
 
         <div class="content">
-            <!-- 登錄界面 -->
+            <!-- ログイン画面 -->
             <div id="loginScreen" class="login-screen">
-                <h2>選擇你的身份</h2>
+                <h2>あなたの身分を選んでください</h2>
                 <div class="login-buttons">
                     <button class="login-btn student-btn" onclick="login('student')">
-                        📚 學生
+                        📚 学生
                     </button>
                     <button class="login-btn teacher-btn" onclick="login('teacher')">
-                        👨‍🏫 老師
+                        👨‍🏫 先生
                     </button>
                 </div>
             </div>
 
-            <!-- 主要頁面 -->
+            <!-- メイン画面 -->
             <div id="mainScreen" class="main-screen">
                 <div class="user-info">
                     <span class="user-name" id="userName"></span>
-                    <button class="logout-btn" onclick="logout()">登出</button>
+                    <button class="logout-btn" onclick="logout()">ログアウト</button>
                 </div>
 
                 <div class="topics-section">
-                    <h2 class="section-title">📖 練習主題</h2>
+                    <h2 class="section-title">📖 学習テーマ</h2>
                     
                     <div class="add-topic-form">
-                        <input type="text" id="topicInput" placeholder="輸入新主題名稱..." />
-                        <button onclick="addTopic()">新增主題</button>
+                        <input type="text" id="topicInput" placeholder="新しいテーマ名を入力してください..." />
+                        <button onclick="addTopic()">テーマを追加</button>
                     </div>
 
                     <div id="topicsList" class="topics-list">
-                        <div class="loading">正在加載主題...</div>
+                        <div class="loading">テーマを読み込み中...</div>
                     </div>
                 </div>
 
                 <div id="messageContainer"></div>
             </div>
 
-            <!-- 練習頁面 -->
+            <!-- 練習画面 -->
             <div id="exerciseScreen" class="exercise-screen">
-                <button class="back-button" onclick="backToTopics()">← 返回主題列表</button>
+                <button class="back-button" onclick="backToTopics()">← テーマリストに戻る</button>
 
                 <div class="topic-header">
                     <h2 id="exerciseTopicName"></h2>
-                    <button class="add-exercise-btn" onclick="startAddExercise()">+ 新增練習</button>
+                    <button class="add-exercise-btn" onclick="startAddExercise()">+ 練習を追加</button>
                 </div>
 
                 <div id="messageContainer2"></div>
 
                 <div id="exercisesList" class="exercises-list">
-                    <div class="loading">正在加載練習...</div>
+                    <div class="loading">練習を読み込み中...</div>
                 </div>
             </div>
         </div>
@@ -592,20 +592,20 @@
         let audioChunks = [];
         let playbackRate = 1;
 
-        // 登錄
+        // ログイン
         function login(role) {
             currentUser = {
                 role: role,
-                name: role === 'student' ? '學生' : '老師',
+                name: role === 'student' ? '学生' : '先生',
                 id: role
             };
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainScreen').style.display = 'block';
-            document.getElementById('userName').textContent = `身份: ${currentUser.name}`;
+            document.getElementById('userName').textContent = `身分: ${currentUser.name}`;
             loadTopics();
         }
 
-        // 登出
+        // ログアウト
         function logout() {
             currentUser = null;
             document.getElementById('mainScreen').style.display = 'none';
@@ -614,7 +614,7 @@
             document.getElementById('topicInput').value = '';
         }
 
-        // 顯示訊息
+        // メッセージを表示
         function showMessage(message, type = 'success', containerId = 'messageContainer') {
             const container = document.getElementById(containerId);
             const div = document.createElement('div');
@@ -627,7 +627,7 @@
             }, 3000);
         }
 
-        // 加載主題
+        // トピックを読み込む
         async function loadTopics() {
             try {
                 const response = await fetch(GAS_URL, {
@@ -641,7 +641,7 @@
                     topicsList.innerHTML = '';
 
                     if (data.data.length === 0) {
-                        topicsList.innerHTML = '<div class="empty-state"><p>尚無主題，請新增第一個主題</p></div>';
+                        topicsList.innerHTML = '<div class="empty-state"><p>テーマはまだありません。最初のテーマを追加してください</p></div>';
                         return;
                     }
 
@@ -656,18 +656,18 @@
                         topicsList.appendChild(card);
                     });
                 } else {
-                    showMessage('加載主題失敗: ' + data.error, 'error');
+                    showMessage('テーマの読み込みに失敗しました: ' + data.error, 'error');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error');
+                showMessage('エラー: ' + error.message, 'error');
             }
         }
 
-        // 新增主題
+        // トピックを追加
         async function addTopic() {
             const topicName = document.getElementById('topicInput').value.trim();
             if (!topicName) {
-                showMessage('請輸入主題名稱', 'error');
+                showMessage('テーマ名を入力してください', 'error');
                 return;
             }
 
@@ -683,17 +683,17 @@
 
                 if (data.success) {
                     document.getElementById('topicInput').value = '';
-                    showMessage('主題新增成功！', 'success');
+                    showMessage('テーマを追加しました！', 'success');
                     loadTopics();
                 } else {
-                    showMessage('新增失敗: ' + data.error, 'error');
+                    showMessage('追加に失敗しました: ' + data.error, 'error');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error');
+                showMessage('エラー: ' + error.message, 'error');
             }
         }
 
-        // 選擇主題
+        // トピックを選択
         function selectTopic(topicId, topicName) {
             currentTopic = { id: topicId, name: topicName };
             document.getElementById('exerciseTopicName').textContent = topicName;
@@ -702,7 +702,7 @@
             loadExercises();
         }
 
-        // 返回主題列表
+        // トピックリストに戻る
         function backToTopics() {
             currentTopic = null;
             document.getElementById('exerciseScreen').style.display = 'none';
@@ -710,7 +710,7 @@
             loadTopics();
         }
 
-        // 加載練習
+        // 練習を読み込む
         async function loadExercises() {
             try {
                 const response = await fetch(GAS_URL, {
@@ -727,7 +727,7 @@
                     exercisesList.innerHTML = '';
 
                     if (data.data.length === 0) {
-                        exercisesList.innerHTML = '<div class="empty-state"><p>尚無練習，請點擊「新增練習」開始</p></div>';
+                        exercisesList.innerHTML = '<div class="empty-state"><p>練習がまだありません。「練習を追加」をクリックしてください</p></div>';
                         return;
                     }
 
@@ -736,14 +736,14 @@
                         exercisesList.appendChild(card);
                     });
                 } else {
-                    showMessage('加載練習失敗: ' + data.error, 'error', 'messageContainer2');
+                    showMessage('練習の読み込みに失敗しました: ' + data.error, 'error', 'messageContainer2');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error', 'messageContainer2');
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
             }
         }
 
-        // 建立練習卡片
+        // 練習カードを作成
         function createExerciseCard(exercise, exerciseNum) {
             const card = document.createElement('div');
             card.className = 'exercise-card';
@@ -753,13 +753,13 @@
             card.innerHTML = `
                 <div class="exercise-header">
                     <span class="exercise-number">練習 ${exerciseNum}</span>
-                    <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.topicId}', '${exercise.exerciseId}')">刪除</button>
+                    <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.topicId}', '${exercise.exerciseId}')">削除</button>
                 </div>
 
                 <div class="exercise-part">
-                    <div class="part-title">${isStudent ? '📝 我的日文' : '📝 學生的日文'}</div>
+                    <div class="part-title">${isStudent ? '📝 私の日本語' : '📝 学生の日本語'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button" onclick="playAudio('${exercise.studentAudioUrl}', this)">🔊 播放我的錄音</button>
+                        <button class="audio-button" onclick="playAudio('${exercise.studentAudioUrl}', this)">🔊 再生</button>
                         <div class="speed-control">
                             <span style="font-size: 12px; color: #666;">速度:</span>
                             <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
@@ -771,19 +771,19 @@
                         </div>
                     </div>
                     <div id="studentText-${exercise.exerciseId}" class="text-display ${!exercise.studentText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'student', '${exercise.studentText || ''}')">
-                        ${exercise.studentText || '點擊輸入日文文字'}
+                        ${exercise.studentText || 'クリックして日本語を入力'}
                     </div>
                     ${isStudent ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student')">🎤 重新錄音</button>
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student')">🎤 再度録音</button>
                         </div>
                     ` : ''}
                 </div>
 
                 <div class="exercise-part">
-                    <div class="part-title">${isStudent ? '✏️ 老師的糾正版' : '✏️ 我的糾正版'}</div>
+                    <div class="part-title">${isStudent ? '✏️ 先生の修正版' : '✏️ 私の修正版'}</div>
                     <div class="audio-controls">
-                        <button class="audio-button" onclick="playAudio('${exercise.teacherAudioUrl}', this)" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 播放老師的錄音</button>
+                        <button class="audio-button" onclick="playAudio('${exercise.teacherAudioUrl}', this)" ${!exercise.teacherAudioUrl ? 'disabled' : ''}>🔊 再生</button>
                         <div class="speed-control">
                             <span style="font-size: 12px; color: #666;">速度:</span>
                             <button class="speed-btn active" onclick="setPlaybackRate(0.5, this)">0.5x</button>
@@ -795,11 +795,11 @@
                         </div>
                     </div>
                     <div id="teacherText-${exercise.exerciseId}" class="text-display ${!exercise.teacherText ? 'empty' : ''}" onclick="editText('${exercise.exerciseId}', 'teacher', '${exercise.teacherText || ''}')">
-                        ${exercise.teacherText || (currentUser.role === 'teacher' ? '點擊輸入日文文字' : '老師尚未錄音')}
+                        ${exercise.teacherText || (currentUser.role === 'teacher' ? 'クリックして日本語を入力' : '先生はまだ録音していません')}
                     </div>
                     ${currentUser.role === 'teacher' ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher')">🎤 錄音</button>
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher')">🎤 録音</button>
                         </div>
                     ` : ''}
                 </div>
@@ -808,7 +808,7 @@
             return card;
         }
 
-        // 開始新增練習
+        // 練習を追加開始
         async function startAddExercise() {
             try {
                 const response = await fetch(GAS_URL, {
@@ -823,17 +823,17 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('練習已建立，請錄音', 'success', 'messageContainer2');
+                    showMessage('練習を作成しました。録音してください', 'success', 'messageContainer2');
                     loadExercises();
                 } else {
-                    showMessage('建立失敗: ' + data.error, 'error', 'messageContainer2');
+                    showMessage('作成に失敗しました: ' + data.error, 'error', 'messageContainer2');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error', 'messageContainer2');
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
             }
         }
 
-        // 開始錄音
+        // 録音開始
         async function startRecording(exerciseId, audioType) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -841,7 +841,7 @@
                 audioChunks = [];
 
                 const button = event.target;
-                button.textContent = '⏹️ 停止錄音';
+                button.textContent = '⏹️ 停止';
                 button.classList.add('recording');
                 button.onclick = () => stopRecording(exerciseId, audioType, button);
 
@@ -849,11 +849,11 @@
                     audioChunks.push(event.data);
                 };
             } catch (error) {
-                showMessage('無法訪問麥克風: ' + error.message, 'error', 'messageContainer2');
+                showMessage('マイクにアクセスできません: ' + error.message, 'error', 'messageContainer2');
             }
         }
 
-        // 停止錄音
+        // 録音停止
         function stopRecording(exerciseId, audioType, button) {
             if (!mediaRecorder) return;
 
@@ -891,23 +891,23 @@
                             const updateData = await updateResponse.json();
 
                             if (updateData.success) {
-                                showMessage('錄音已保存！', 'success', 'messageContainer2');
+                                showMessage('録音を保存しました！', 'success', 'messageContainer2');
                                 loadExercises();
                             } else {
-                                showMessage('保存失敗: ' + updateData.error, 'error', 'messageContainer2');
+                                showMessage('保存に失敗しました: ' + updateData.error, 'error', 'messageContainer2');
                             }
                         } else {
-                            showMessage('上傳失敗: ' + uploadData.error, 'error', 'messageContainer2');
+                            showMessage('アップロードに失敗しました: ' + uploadData.error, 'error', 'messageContainer2');
                         }
                     } catch (error) {
-                        showMessage('錯誤: ' + error.message, 'error', 'messageContainer2');
+                        showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
                     }
                 };
 
                 reader.readAsDataURL(audioBlob);
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
 
-                button.textContent = '🎤 重新錄音';
+                button.textContent = '🎤 再度録音';
                 button.classList.remove('recording');
                 button.onclick = () => startRecording(exerciseId, audioType);
             };
@@ -915,21 +915,21 @@
             mediaRecorder.stop();
         }
 
-        // 播放音頻
+        // オーディオを再生
         function playAudio(url, button) {
             if (!url) {
-                showMessage('沒有音頻可播放', 'error', 'messageContainer2');
+                showMessage('再生できるオーディオがありません', 'error', 'messageContainer2');
                 return;
             }
 
             const audio = new Audio(url);
             audio.playbackRate = playbackRate;
             audio.play().catch(error => {
-                showMessage('播放失敗: ' + error.message, 'error', 'messageContainer2');
+                showMessage('再生に失敗しました: ' + error.message, 'error', 'messageContainer2');
             });
         }
 
-        // 設定播放速度
+        // 再生速度を設定
         function setPlaybackRate(rate, button) {
             playbackRate = rate;
             document.querySelectorAll('.speed-btn').forEach(btn => {
@@ -938,7 +938,7 @@
             button.classList.add('active');
         }
 
-        // 編輯文字
+        // テキストを編集
         function editText(exerciseId, textType, currentText) {
             const displayId = `${textType}Text-${exerciseId}`;
             const display = document.getElementById(displayId);
@@ -957,9 +957,9 @@
 
             const cancelBtn = document.createElement('button');
             cancelBtn.className = 'text-cancel-btn';
-            cancelBtn.textContent = '✕ 取消';
+            cancelBtn.textContent = '✕ キャンセル';
             cancelBtn.onclick = () => {
-                display.innerHTML = currentText || (textType === 'student' ? '點擊輸入日文文字' : '點擊輸入日文文字');
+                display.innerHTML = currentText || (textType === 'student' ? 'クリックして日本語を入力' : 'クリックして日本語を入力');
                 display.classList.toggle('empty', !currentText);
             };
 
@@ -972,7 +972,7 @@
             textarea.focus();
         }
 
-        // 保存文字
+        // テキストを保存
         async function saveText(exerciseId, textType, text) {
             const field = textType === 'student' ? 'studentText' : 'teacherText';
 
@@ -990,19 +990,19 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('文字已保存！', 'success', 'messageContainer2');
+                    showMessage('テキストを保存しました！', 'success', 'messageContainer2');
                     loadExercises();
                 } else {
-                    showMessage('保存失敗: ' + data.error, 'error', 'messageContainer2');
+                    showMessage('保存に失敗しました: ' + data.error, 'error', 'messageContainer2');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error', 'messageContainer2');
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
             }
         }
 
-        // 刪除練習
+        // 練習を削除
         async function deleteExercise(topicId, exerciseId) {
-            if (!confirm('確認刪除這個練習嗎？')) return;
+            if (!confirm('この練習を削除してもいいですか？')) return;
 
             try {
                 const response = await fetch(GAS_URL, {
@@ -1016,13 +1016,13 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('練習已刪除', 'success', 'messageContainer2');
+                    showMessage('練習を削除しました', 'success', 'messageContainer2');
                     loadExercises();
                 } else {
-                    showMessage('刪除失敗: ' + data.error, 'error', 'messageContainer2');
+                    showMessage('削除に失敗しました: ' + data.error, 'error', 'messageContainer2');
                 }
             } catch (error) {
-                showMessage('錯誤: ' + error.message, 'error', 'messageContainer2');
+                showMessage('エラー: ' + error.message, 'error', 'messageContainer2');
             }
         }
     </script>
