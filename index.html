@@ -775,7 +775,7 @@
                     </div>
                     ${isStudent ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student')">🎤 再度録音</button>
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'student', this)">🎤 再度録音</button>
                         </div>
                     ` : ''}
                 </div>
@@ -799,7 +799,7 @@
                     </div>
                     ${currentUser.role === 'teacher' ? `
                         <div style="margin-top: 10px;">
-                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher')">🎤 録音</button>
+                            <button class="audio-button" onclick="startRecording('${exercise.exerciseId}', 'teacher', this)">🎤 録音</button>
                         </div>
                     ` : ''}
                 </div>
@@ -834,13 +834,12 @@
         }
 
         // 録音開始
-        async function startRecording(exerciseId, audioType) {
+        async function startRecording(exerciseId, audioType, button) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
-                const button = event.currentTarget;
                 button.textContent = '⏹️ 停止';
                 button.classList.add('recording');
                 button.onclick = () => stopRecording(exerciseId, audioType, button);
