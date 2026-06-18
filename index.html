@@ -820,7 +820,12 @@
 
             card.querySelectorAll('.record-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    startRecording(this.dataset.exerciseId, this.dataset.audioType, this);
+                    const isRecording = this.classList.contains('recording');
+                    if (isRecording) {
+                        stopRecording(this.dataset.exerciseId, this.dataset.audioType, this);
+                    } else {
+                        startRecording(this.dataset.exerciseId, this.dataset.audioType, this);
+                    }
                 });
             });
 
@@ -942,9 +947,10 @@
                 reader.readAsDataURL(audioBlob);
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
 
+                // ボタンを元の状態に戻す
                 button.textContent = '🎤 再度録音';
                 button.classList.remove('recording');
-                button.onclick = () => startRecording(exerciseId, audioType);
+                // イベント委托は自動的に処理するため、onclickを設定しない
             };
 
             mediaRecorder.stop();
