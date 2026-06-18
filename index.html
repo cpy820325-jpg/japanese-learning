@@ -840,7 +840,7 @@
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
-                const button = event.target;
+                const button = event.currentTarget;
                 button.textContent = '⏹️ 停止';
                 button.classList.add('recording');
                 button.onclick = () => stopRecording(exerciseId, audioType, button);
